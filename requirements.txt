@@ -11,4 +11,7 @@ netcdf4
 numpy
 pre-commit
 sphinx_rtd_theme
+cython
+ruamel.yaml
+scons
 tqdm
