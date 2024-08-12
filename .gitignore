@@ -27,3 +27,21 @@ external/*.tar.gz
 
 # cache
 .cache/
+
+#env
+pyenv*/
+
+#external
+external*/
+
+#example deps
+examples/_deps*/
+examples/bin*/
+examples/CMakeFiles*/
+examples/data*/
+examples/lib*/
+examples/python*/
+examples/src*/
+examples/tests*/
+examples/tools*/
+examples/examples*/

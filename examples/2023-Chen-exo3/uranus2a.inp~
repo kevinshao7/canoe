@@ -1,0 +1,77 @@
+<comment>
+problem   = Dense sinking bubble test
+reference = Straka et al., 1993
+configure = --patch=drum --coord=spherical_polar --prob=hjupiter --flux=lmars --nghost=3 --pnetcdf_path=../pnetcdf -pnetcdf -mpi
+
+<job>
+problem_id = uranus2a   # problem ID: basename of output filenames
+
+<output1>
+file_type  = hst          # History data dump
+dt         = 5E6      # time increment between outputs
+
+<output2>
+file_type  = pnetcdf      # Binary data dump
+variable   = prim         # variables to be output
+dt         = 5E6      # time increment between outputs
+
+<output3>
+file_type  = pnetcdf
+variable   = uov
+dt         = 5E2
+
+<output4>
+file_type  = rst
+dt         = 5E6
+
+<time>
+cfl_number = 0.9          # The Courant, Friedrichs, & Lewy (CFL) Number
+nlim       = 100           # cycle limit
+tlim       = 2.8E9     # time limit
+xorder     = 5            # horizontal reconstruction order
+integrator = rk3          # integration method
+
+<mesh>
+nx1        = 32           # Number of zones in X1-direction
+x1min      = 2.525E7         # minimum value of X1
+x1max      = 2.625E7       # maximum value of X1
+ix1_bc     = reflecting   # inner-X1 boundary flag
+ox1_bc     = reflecting   # outer-X1 boundary flaga
+
+nx2        = 40           # Number of zones in X2-direction
+x2min      = 0.     # minimum value of X2
+x2max      = 1.E3      # maximum value of X2
+ix2_bc     = periodic        # inner-X2 boundary flag
+ox2_bc     = periodic        # outer-X2 boundary flag
+
+nx3        = 60          # Number of zones in X3-direction
+x3min      = 0.0          # minimum value of X3
+x3max      = 1.E3      # maximum value of X3
+ix3_bc     = periodic     # inner-X3 boundary flag
+ox3_bc     = periodic     # outer-X3 boundary flag
+
+ReferencePressure = 1.E5
+PressureScaleHeight = 2.5E4
+
+<meshblock>
+nx1        = 32
+nx2        = 10
+nx3        = 10
+
+<hydro>
+grav_acc1   = -8.94
+gamma       = 1.456        # gamma = C_p/C_v
+implicit_flag = 9
+
+<thermodynamics>
+Rd          = 3402.268       # Gas constant
+z_stra      = 2.E5        # Stratosphere height, m
+
+<problem>
+Ts         = 300.            # Surface temperature, K
+p0         = 1.E5             # Surface pressure, Pa
+Rp         = 2.525E7             # Planetary Radius, m
+sponge_tau = 1E4.
+eq_heat_flux = 3.72    #Equilibrium heat flux
+sday = 62092. #Sidereal day in seconds
+syear = 2.5759E9 #Sidereal year in seconds

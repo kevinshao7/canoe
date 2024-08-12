@@ -1,0 +1,86 @@
+<comment>
+problem   = Dense sinking bubble test
+reference = Straka et al., 1993
+configure = --patch=drum --coord=spherical_polar --prob=hjupiter --flux=lmars --nghost=3 --pnetcdf_path=../pnetcdf -pnetcdf -mpi
+
+<job>
+problem_id = uranus3c   # problem ID: basename of output filenames
+
+<output1>
+file_type  = hst          # History data dump
+dt         = 1E1      # time increment between outputs
+
+<output2>
+file_type  = pnetcdf      # Binary data dump
+variable   = prim         # variables to be output
+dt         = 1E1      # time increment between outputs
+
+<output3>
+file_type  = pnetcdf
+variable   = uov
+dt         = 1E1
+
+<output4>
+file_type  = rst
+dt         = 1E1
+
+<time>
+cfl_number = 0.1          # The Courant, Friedrichs, & Lewy (CFL) Number
+nlim       = 50          # cycle limit
+tlim       = 4E10     # time limit
+xorder     = 5            # horizontal reconstruction order
+integrator = rk3          # integration method
+
+<mesh>
+nx1        = 32           # Number of zones in X1-direction
+x1min      = 2.4973E7         # minimum value of X1, should be equal to Rpol
+x1max      = 2.5453E7       # maximum value of X1
+ix1_bc     = reflecting   # inner-X1 boundary flag
+ox1_bc     = reflecting   # outer-X1 boundary flaga
+
+nx2        = 40           # Number of zones in X2-direction
+x2min      = 0.     # minimum value of X2
+x2max      = 1.E3      # maximum value of X2
+ix2_bc     = periodic        # inner-X2 boundary flag
+ox2_bc     = periodic        # outer-X2 boundary flag
+
+nx3        = 60          # Number of zones in X3-direction
+x3min      = 0.0          # minimum value of X3
+x3max      = 1.E3      # maximum value of X3
+ix3_bc     = periodic     # inner-X3 boundary flag
+ox2_bc     = periodic        # outer-X2 boundary flag
+
+nx3        = 60          # Number of zones in X3-direction
+x3min      = 0.0          # minimum value of X3
+x3max      = 1.E3      # maximum value of X3
+ix3_bc     = periodic     # inner-X3 boundary flag
+ox3_bc     = periodic     # outer-X3 boundary flag
+
+ReferencePressure = 1.E5 #by convention
+PressureScaleHeight = 2.5E4 #(de Pater Planetar Sciences textbook)
+
+<meshblock>
+nx1        = 32
+nx2        = 10
+nx3        = 10
+
+<hydro>
+grav_acc1   = -9.19        #Polar gravity (de Pater Planetary Sciences textbook)
+gamma       = 1.456        # gamma = C_p/C_v, (Justh, 2021) heat capacity ratio, NOT adiabatic
+implicit_flag = 9
+
+<thermodynamics>
+Rd          = 3402.268       # Gas constant (Justh 2021)
+z_stra      = 2.E5        # Stratosphere height, m
+
+<problem>
+Ts          = 400.            # Surface temperature, K
+p0          = 1.E5             # Surface pressure, Pa (by convention)
+Rpol        = 2.4973E7             # Polar Planetary Radius, m (de Pater textbook), should be equal to x1min
+Req         = 2.5373E7         #Eqatorial Radius
+eq_heat_flux= 3.72    #Equilibrium heat flux (de Pater textbook planetary sciences)
+sday        = 62092. #Sidereal day in seconds (Lamy 2024)
+syear       = 2.5759E9 #Sidereal year in seconds (Yoder 1995)
+emissivity  = 0.20 #Jupiter is 0.27 (Taylor 1965)
+lowerlapse = 0.0004
+upperlapse = 0.0004

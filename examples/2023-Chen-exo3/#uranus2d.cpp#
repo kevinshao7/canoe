@@ -1,0 +1,1 @@
+du(IEN, k, j, i) -= 0.20*sigma*_qur(temp) * dt / dz / 10; //emissivity of 0.20
