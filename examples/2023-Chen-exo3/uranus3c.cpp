@@ -58,8 +58,14 @@ Real Insolation(MeshBlock *pmb,int k,int j,Real time){
   Real longsun = -2*pi*(time-dayn*dday)/dday; //in radians
   Real cosomega = sin(lat)*sin(latsun)+cos(lat)*cos(latsun)*cos(longsun-lon);
   if (cosomega>0){
-    Real fluxmax = eq_heat_flux + 3000/exp( time /2.E6);
-    return fluxmax*cosomega;
+    if (time > 1.E8){
+      return eq_heat_flux*cosomega;
+    }
+    else{
+      Real fluxmax = eq_heat_flux + 3000/exp( time /2.E6);
+      return fluxmax*cosomega;
+    }
+    
   }
   else return 0;
 }
@@ -68,12 +74,12 @@ Real IsobarLevel(Real lat){//input lat in radian
   return Rpol*Req/sqrt(_sqr(Rpol)*_sqr(cos(lat))+_sqr(Req)*_sqr(sin(lat))); //chord of ellipse
 }
 Real BottomTemp(Real lat){
-  return Ts + lowerlapse*(Rpol-IsobarLevel(lat));
+  return Ts + lowerlapse*(IsobarLevel(lat)-Rpol);
 }
 
 Real BottomPres(Real lat){//input lat in radians
   Real z1 = IsobarLevel(lat);
-  Real lnbotpres = log(p0) + (-grav/(Rd*lowerlapse))*log(1+lowerlapse*(z1-Rpol)/Ts);
+  Real lnbotpres = log(p0) + (grav/(Rd*lowerlapse))*log(1+lowerlapse*(Rpol-z1)/BottomTemp(lat));
   return exp(lnbotpres);
 }
 

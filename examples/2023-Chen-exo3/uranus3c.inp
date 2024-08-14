@@ -8,33 +8,33 @@ problem_id = uranus3c   # problem ID: basename of output filenames
 
 <output1>
 file_type  = hst          # History data dump
-dt         = 1E1      # time increment between outputs
+dt         = 1E2      # time increment between outputs
 
 <output2>
 file_type  = pnetcdf      # Binary data dump
 variable   = prim         # variables to be output
-dt         = 1E1      # time increment between outputs
+dt         = 1E2      # time increment between outputs
 
 <output3>
 file_type  = pnetcdf
 variable   = uov
-dt         = 1E1
+dt         = 1E2
 
 <output4>
 file_type  = rst
-dt         = 1E1
+dt         = 1E2
 
 <time>
 cfl_number = 0.1          # The Courant, Friedrichs, & Lewy (CFL) Number
-nlim       = 50          # cycle limit
+nlim       = 200          # cycle limit
 tlim       = 4E10     # time limit
 xorder     = 5            # horizontal reconstruction order
 integrator = rk3          # integration method
 
 <mesh>
 nx1        = 32           # Number of zones in X1-direction
-x1min      = 2.4973E7         # minimum value of X1, should be equal to Rpol
-x1max      = 2.5453E7       # maximum value of X1
+x1min      = 2.4960E7         # minimum value of X1, should be less than Rpol otherwise division by zero
+x1max      = 2.5473E7       # maximum value of X1
 ix1_bc     = reflecting   # inner-X1 boundary flag
 ox1_bc     = reflecting   # outer-X1 boundary flaga
 
@@ -74,13 +74,13 @@ Rd          = 3402.268       # Gas constant (Justh 2021)
 z_stra      = 2.E5        # Stratosphere height, m
 
 <problem>
-Ts          = 400.            # Surface temperature, K
+Ts          = 100.            # Surface temperature, K
 p0          = 1.E5             # Surface pressure, Pa (by convention)
-Rpol        = 2.4973E7             # Polar Planetary Radius, m (de Pater textbook), should be equal to x1min
+Rpol        = 2.4973E7             # Polar Planetary Radius, m (de Pater textbook), should be greater than x1min, otherwise division by zero
 Req         = 2.5373E7         #Eqatorial Radius
 eq_heat_flux= 3.72    #Equilibrium heat flux (de Pater textbook planetary sciences)
 sday        = 62092. #Sidereal day in seconds (Lamy 2024)
 syear       = 2.5759E9 #Sidereal year in seconds (Yoder 1995)
-emissivity  = 0.20 #Jupiter is 0.27 (Taylor 1965)
-lowerlapse = 0.0004
-upperlapse = 0.0004
+emissivity  = 0.25 #Jupiter is 0.27 (Taylor 1965)
+lowerlapse = 0.0001
+upperlapse = 0.0001
