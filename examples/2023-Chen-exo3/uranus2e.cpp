@@ -38,16 +38,15 @@
 
 #define _sqr(x) ((x) * (x))
 #define _qur(x) ((x) * (x) * (x) * (x))
+#define _cube(x) ((x) * (x) * (x))
 
 using namespace std;
 
-static Real p0, Rd, cp, Ts, Rpol,Req, grav, z_stra, eq_heat_flux,sday,syear, pi, dday, Omega, sigma,emissivity,lowerlapse,upperlapse;
+static Real p0, Rd, cp, Ts, Rp, grav, eq_heat_flux,sday,syear, pi, dday, Omega, sigma, emissivity,adtdz,cv,spinupflux,flux_ratio;
 Real current_time;
 std::default_random_engine generator;
 std::normal_distribution<double> distribution(0.0, 1.0);                                                                       
 
-//REMEMBER VARIABLE GRAV IS STORED AS NEGATIVE!!!
-// Calculate daily and annual cycle
 Real Insolation(MeshBlock *pmb,int k,int j,Real time){
   auto pexo3 = pmb->pimpl->pexo3;
   int is = pmb->is;
@@ -55,14 +54,14 @@ Real Insolation(MeshBlock *pmb,int k,int j,Real time){
   pexo3->GetLatLon(&lat, &lon, k, j, is);
   Real latsun = (pi*82.2/180)* cos(2*pi*time /syear); //in radians
   Real dayn = std::floor(time/dday);
-  Real longsun = -2*pi*(time-dayn*dday)/dday; //in radians
+  Real longsun = 2*pi*(time-dayn*dday)/dday; //in radians
   Real cosomega = sin(lat)*sin(latsun)+cos(lat)*cos(latsun)*cos(longsun-lon);
   if (cosomega>0){
     if (time > 1.E8){
       return eq_heat_flux*cosomega;
     }
     else{
-      Real fluxmax = eq_heat_flux + 3000/exp( time /2.E6);
+      Real fluxmax = eq_heat_flux + spinupflux/exp( time /5.E6);
       return fluxmax*cosomega;
     }
     
@@ -70,18 +69,8 @@ Real Insolation(MeshBlock *pmb,int k,int j,Real time){
   else return 0;
 }
 
-Real IsobarLevel(Real lat){//input lat in radian
-  return Rpol*Req/sqrt(_sqr(Rpol)*_sqr(cos(lat))+_sqr(Req)*_sqr(sin(lat))); //chord of ellipse
-}
-Real BottomTemp(Real lat){
-  return Ts + lowerlapse*(IsobarLevel(lat)-Rpol);
-}
 
-Real BottomPres(Real lat){//input lat in radians
-  Real z1 = IsobarLevel(lat);
-  Real lnbotpres = log(p0) + (grav/(Rd*lowerlapse))*log(1+lowerlapse*(Rpol-z1)/BottomTemp(lat));
-  return exp(lnbotpres);
-}
+
 
 void Forcing(MeshBlock *pmb, Real const time, Real const dt,
              AthenaArray<Real> const &w, const AthenaArray<Real> &prim_scalar,
@@ -119,33 +108,45 @@ void Forcing(MeshBlock *pmb, Real const time, Real const dt,
     // Heat flux at the boundaries                                                                                                
   for (int k = pmb->ks; k <= pmb->ke; ++k)
       for (int j = pmb->js; j <= pmb->je; ++j) {
-          // Energy input from bottom at 1 bar level
-          for (int i = pmb->is; i<= pmb->ie; ++i){
-            if (pmb->phydro->w(IPR, k, j, i) <= 1e5){
-              Real dz = pmb->pcoord->dx1f(pmb->is);
-              du(IEN, k, j, pmb->is) += Insolation(pmb,k,j,time) * dt / dz;
-              break;
-            }
+        //heating layer 1
+        int heatinglayers = 0;
+        int heatfinishi = 0;
+        for (int i = pmb->is; i<= pmb->ie; ++i){
+          Real dz = pmb->pcoord->dx1f(i);
+          du(IEN, k, j, i) += 0.9*Insolation(pmb,k,j,time) * dt / dz / 5;
+          heatfinishi = i;
+          heatinglayers++;
+          if (heatinglayers >= 5){
+            break;
           }
-          int coolinglayers = 0;
-          // Energy taken away from the top at 0.001 bar level                                                                      
-          for (int i = pmb->ie; i>=0; --i){
-            if (pmb->phydro->w(IPR, k, j, i) >= 100){
-              Real dz = pmb->pcoord->dx1f(i);
-              Real temp = pmb->phydro->w(IPR, k, j, pmb->ie) / pmb->phydro->w(IDN, k, j, pmb->ie) / Rd;
-              if (temp >= 50){
-                du(IEN, k, j, i) -= emissivity*sigma*_qur(temp) * dt / dz / 10; //emissivity of 0.25
-                coolinglayers++;
-              }
-            }
-            if (coolinglayers>=10){
-              break;
-            }
+        }         
+        //cooling layer 1 
+        int coolinglayers=0;                                                                  
+        for (int i = heatfinishi+5; i<= pmb->ie; ++i){
+          Real dz = pmb->pcoord->dx1f(i);
+          Real cool_coeff = flux_ratio/dz;
+          Real temp = pmb->phydro->w(IPR, k, j,i) / pmb->phydro->w(IDN, k, j,i) / Rd;
+          du(IEN, k, j, i) -= dt*cool_coeff*sigma*_qur(temp)/10;
+          coolinglayers++;
+          // Real temp = pmb->phydro->w(IPR, k, j,i) / pmb->phydro->w(IDN, k, j,i) / Rd;
+          // Real deltatemp = pow((3*emissivity*sigma*dt/(cv*dz)+(1/_cube(temp))),-(1/3)) - temp;
+          // du(IEN, k, j, i) += cv*deltatemp;
+          if (coolinglayers >= 10){
+            break;
           }
-          //Dirchlet bottom pressure condition
-          Real lat, lon;
-          pexo3->GetLatLon(&lat, &lon, k, j, pmb->is);
-          pmb->phydro->w(IPR, k, j, pmb->is) = BottomPres(lat);
+        }
+        heatinglayers = 0;
+                //heating layer 2
+        for (int i = pmb->ie; i>= pmb->is; --i){
+          Real dz = pmb->pcoord->dx1f(i);
+          du(IEN, k, j, i) += 0.1*Insolation(pmb,k,j,time) * dt / dz;
+          heatinglayers++;
+          if (heatinglayers >= 1){
+            break;
+          }
+        } 
+
+  //if(u(IEN, k, j, pmb->ie)<0) u(IEN, k, j, pmb->ie) = 0;                                                                      
   }
 }
 
@@ -207,21 +208,17 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
   grav = pin->GetReal("hydro", "grav_acc1");
   Ts = pin->GetReal("problem", "Ts");
   p0 = pin->GetReal("problem", "p0");
-  z_stra = pin->GetReal("thermodynamics", "z_stra");
   Rd = pin->GetReal("thermodynamics", "Rd");
   eq_heat_flux = pin->GetReal("problem", "eq_heat_flux");
   sday = pin->GetReal("problem", "sday");
   syear = pin->GetReal("problem", "syear");
-  emissivity = pin->GetReal("problem", "emissivity");
-  Rpol = pin->GetReal("problem", "Rpol");
-  Req = pin->GetReal("problem","Req");
-  lowerlapse= pin->GetReal("problem","lowerlapse");
-  upperlapse = pin->GetReal("problem","upperlapse");
   cp = gamma / (gamma - 1.) * Rd;
+  cv = cp/gamma;
   pi = 3.14159265;
   dday = syear/(1+syear/sday); //diurnal day inseconds
   Omega = -2*pi/sday; //retrograde
   sigma = 5.670374419E-8;
+  flux_ratio = 0.25*eq_heat_flux/(sigma*_qur(Ts));
   current_time=0.;
   // forcing function                                                                                                             
   EnrollUserExplicitSourceFunction(Forcing);
@@ -239,6 +236,17 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   Ts = pin->GetReal("problem", "Ts");
   Rd = pin->GetReal("thermodynamics", "Rd");
   cp = gamma / (gamma - 1.) * Rd;
+  Rp = pin->GetReal("problem", "Rp");
+  emissivity = pin->GetReal("problem", "emissivity");
+  eq_heat_flux = pin->GetReal("problem", "eq_heat_flux");
+  adtdz = pin->GetReal("problem", "adtdz");
+  spinupflux = pin->GetReal("problem", "spinupflux");
+  cp = gamma / (gamma - 1.) * Rd;
+  pi = 3.14159265;
+  dday = syear/(1+syear/sday); //diurnal day inseconds
+  Omega = -2*pi/sday; //retrograde
+  sigma = 5.670374419E-8;
+  current_time=0.;
 
   // construct an isothermal atmosphere                                                                                           
   auto pthermo = Thermodynamics::GetInstance();
@@ -246,14 +254,13 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 
   for (int k = ks; k <= ke; ++k)
     for (int j = js; j <= je; ++j) {
-      Real lat, lon;
-      pexo3->GetLatLon(&lat, &lon, k, j, is);
-      air.w[IDN] = BottomTemp(lat);
-      air.w[IPR] = BottomPres(lat);
+      air.w[IPR] = p0;
+      air.w[IDN] = Ts;
+
       int i = is;
       for (; i <= ie; ++i) {
         AirParcelHelper::distribute_to_conserved(this, k, j, i, air);
-        pthermo->Extrapolate(&air, pcoord->dx1f(i), "isothermal", grav, upperlapse);
+        pthermo->Extrapolate(&air, pcoord->dx1f(i), "dry", grav, adtdz);
         // add noise                                                                                                              
         air.w[IVY] = 100* distribution(generator);
         air.w[IVZ] = 100* distribution(generator);
@@ -281,7 +288,7 @@ void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
       for (int i = is; i <= ie; ++i) {
         Real prim[NHYDRO];
         for (int n = 0; n < NHYDRO; ++n) prim[n] = phydro->w(n, j, i);
-        Real temp = phydro->w(IPR, k, j, i) / phydro->w(IDN, k, j, i) / Rd;
+        Real temp = phydro->w(IPR, k, j, i) / phydro->w(IDN, k, j, i) / Rd; //assume hydrostatic??
         user_out_var(0, k, j, i) = temp;
         user_out_var(1, k, j, i) =
             temp * pow(p0 / phydro->w(IPR, k, j, i), Rd / cp);
@@ -299,9 +306,16 @@ void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
         Real longsun = -2*pi*(current_time-dayn*dday)/dday; //in radians
         Real cosomega = sin(lat)*sin(latsun)+cos(lat)*cos(latsun)*cos(longsun-lon);
         if (cosomega>0){
-          Real fluxmax = eq_heat_flux + 3000/exp(current_time/2.E6);
-          user_out_var(6,k,j,i) = fluxmax*cosomega;
+          if (current_time > 1.E8){
+            user_out_var(6, k, j, i) = eq_heat_flux*cosomega;
+          }
+          else{
+            Real fluxmax = eq_heat_flux + spinupflux/exp( current_time /5.E6);
+            user_out_var(6, k, j, i) = fluxmax*cosomega;
+          }
+        } else{
+          user_out_var(6, k, j, i) = 0;
         }
-        else user_out_var(6,k,j,i) = 0;
-      }
+    }
 }
+

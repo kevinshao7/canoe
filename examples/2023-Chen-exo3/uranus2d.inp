@@ -8,25 +8,25 @@ problem_id = uranus2d   # problem ID: basename of output filenames
 
 <output1>
 file_type  = hst          # History data dump
-dt         = 5E6      # time increment between outputs
+dt         = 1E7      # time increment between outputs
 
 <output2>
 file_type  = pnetcdf      # Binary data dump
 variable   = prim         # variables to be output
-dt         = 5E6      # time increment between outputs
+dt         = 1E4      # time increment between outputs
 
 <output3>
 file_type  = pnetcdf
 variable   = uov
-dt         = 5E6
+dt         = 1E4
 
 <output4>
 file_type  = rst
-dt         = 5E6
+dt         = 1E7
 
 <time>
 cfl_number = 0.9          # The Courant, Friedrichs, & Lewy (CFL) Number
-nlim       = 800000           # cycle limit
+nlim       = 1000           # cycle limit
 tlim       = 4E10     # time limit
 xorder     = 5            # horizontal reconstruction order
 integrator = rk3          # integration method
@@ -59,19 +59,20 @@ nx2        = 10
 nx3        = 10
 
 <hydro>
-grav_acc1   = -8.94
-gamma       = 1.456        # gamma = C_p/C_v
+grav_acc1   = -9.19        #Polar gravity (de Pater Planetary Sciences textbook)
+gamma       = 1.456        # gamma = C_p/C_v, (Justh, 2021) heat capacity ratio, NOT adiabatic lapse rate
 implicit_flag = 9
 
 <thermodynamics>
-Rd          = 3402.268       # Gas constant
-z_stra      = 2.E5        # Stratosphere height, m
+Rd          = 3402.268       # Gas constant (Justh 2021)
 
 <problem>
-Ts         = 500.            # Surface temperature, K
-p0         = 1.E5             # Surface pressure, Pa
-Rp         = 2.525E7             # Planetary Radius, m
-sponge_tau = 1E4.
-eq_heat_flux = 3.72    #Equilibrium heat flux
-sday = 62092. #Sidereal day in seconds
-syear = 2.5759E9 #Sidereal year in seconds
+Ts          = 80.            # Surface temperature, K
+p0          = 1.E5             # Surface pressure, Pa (by convention)
+Rp          = 2.525E7            # Polar Planetary Radius, m (de Pater textbook), should be greater than x1min, otherwise division by zero
+eq_heat_flux= 3.72    #Equilibrium heat flux (de Pater textbook planetary sciences)
+sday        = 62092. #Sidereal day in seconds (Lamy 2024)
+syear       = 2.5759E9 #Sidereal year in seconds (Yoder 1995)
+emissivity  = 0.90 #Jupiter is 0.27 (Taylor 1965)
+adtdz = 0.003
+spinupflux = 5000.

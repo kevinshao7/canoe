@@ -41,7 +41,7 @@
 
 using namespace std;
 
-static Real p0, Rd, cp, Ts, Rpol,Req, grav, z_stra, eq_heat_flux,sday,syear, pi, dday, Omega, sigma,emissivity,lowerlapse,upperlapse;
+static Real p0, Rd, cp, Ts, Rpol,Req, grav, z_stra, eq_heat_flux,sday,syear, pi, dday, Omega, sigma,emissivity,lowerlapse,upperlapse,cv,spin_up_flux;
 Real current_time;
 std::default_random_engine generator;
 std::normal_distribution<double> distribution(0.0, 1.0);                                                                       
@@ -55,14 +55,14 @@ Real Insolation(MeshBlock *pmb,int k,int j,Real time){
   pexo3->GetLatLon(&lat, &lon, k, j, is);
   Real latsun = (pi*82.2/180)* cos(2*pi*time /syear); //in radians
   Real dayn = std::floor(time/dday);
-  Real longsun = -2*pi*(time-dayn*dday)/dday; //in radians
+  Real longsun = 2*pi*(time-dayn*dday)/dday; //in radians
   Real cosomega = sin(lat)*sin(latsun)+cos(lat)*cos(latsun)*cos(longsun-lon);
   if (cosomega>0){
     if (time > 1.E8){
       return eq_heat_flux*cosomega;
     }
     else{
-      Real fluxmax = eq_heat_flux + 3000/exp( time /2.E6);
+      Real fluxmax = eq_heat_flux + spin_up_flux/exp( time /2.E6);
       return fluxmax*cosomega;
     }
     
@@ -81,6 +81,20 @@ Real BottomPres(Real lat){//input lat in radians
   Real z1 = IsobarLevel(lat);
   Real lnbotpres = log(p0) + (grav/(Rd*lowerlapse))*log(1+lowerlapse*(Rpol-z1)/BottomTemp(lat));
   return exp(lnbotpres);
+}
+
+Real SBCooling(Real inittemp, Real dt, Real dz){//Stephan Boltzmann cooling
+  Real newtemp = pow((3*emissivity*sigma*dt/(cv*dz)+pow(inittemp,-3)),-(1/3));
+  return cv*(newtemp-inittemp);
+}
+
+void UranusExtrapolate(AirParcel* air, Real lat, Real height){
+  Real pbot = BottomPres(lat);
+  Real Tbot = BottomTemp(lat);
+    
+  Real logp = log(pbot) - (grav/(Rd*upperlapse))*log(1-upperlapse*(height-Rpol)/Tbot);
+  air->w[IDN] = Tbot-(upperlapse)*(height-Rpol);
+  air->w[IPR] = exp(logp);
 }
 
 void Forcing(MeshBlock *pmb, Real const time, Real const dt,
@@ -119,6 +133,7 @@ void Forcing(MeshBlock *pmb, Real const time, Real const dt,
     // Heat flux at the boundaries                                                                                                
   for (int k = pmb->ks; k <= pmb->ke; ++k)
       for (int j = pmb->js; j <= pmb->je; ++j) {
+
           // Energy input from bottom at 1 bar level
           for (int i = pmb->is; i<= pmb->ie; ++i){
             if (pmb->phydro->w(IPR, k, j, i) <= 1e5){
@@ -127,22 +142,22 @@ void Forcing(MeshBlock *pmb, Real const time, Real const dt,
               break;
             }
           }
+
           int coolinglayers = 0;
           // Energy taken away from the top at 0.001 bar level                                                                      
           for (int i = pmb->ie; i>=0; --i){
             if (pmb->phydro->w(IPR, k, j, i) >= 100){
               Real dz = pmb->pcoord->dx1f(i);
-              Real temp = pmb->phydro->w(IPR, k, j, pmb->ie) / pmb->phydro->w(IDN, k, j, pmb->ie) / Rd;
-              if (temp >= 50){
-                du(IEN, k, j, i) -= emissivity*sigma*_qur(temp) * dt / dz / 10; //emissivity of 0.25
-                coolinglayers++;
-              }
+              Real temp = pmb->phydro->w(IDN, k, j, i);
+              du(IEN, k, j, i) += SBCooling(temp,dt,dz)/ 10; //emissivity of 0.25
+              coolinglayers++;
             }
             if (coolinglayers>=10){
               break;
             }
           }
-          //Dirchlet bottom pressure condition
+
+          // Dirchlet bottom pressure condition
           Real lat, lon;
           pexo3->GetLatLon(&lat, &lon, k, j, pmb->is);
           pmb->phydro->w(IPR, k, j, pmb->is) = BottomPres(lat);
@@ -213,11 +228,14 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
   sday = pin->GetReal("problem", "sday");
   syear = pin->GetReal("problem", "syear");
   emissivity = pin->GetReal("problem", "emissivity");
+
   Rpol = pin->GetReal("problem", "Rpol");
   Req = pin->GetReal("problem","Req");
   lowerlapse= pin->GetReal("problem","lowerlapse");
   upperlapse = pin->GetReal("problem","upperlapse");
+  spin_up_flux = pin->GetReal("problem","spin_up_flux");
   cp = gamma / (gamma - 1.) * Rd;
+  cv = cp/gamma;
   pi = 3.14159265;
   dday = syear/(1+syear/sday); //diurnal day inseconds
   Omega = -2*pi/sday; //retrograde
@@ -253,10 +271,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
       int i = is;
       for (; i <= ie; ++i) {
         AirParcelHelper::distribute_to_conserved(this, k, j, i, air);
-        pthermo->Extrapolate(&air, pcoord->dx1f(i), "dry", grav, upperlapse);
+        Real height = pcoord->x1f(i);
+        pthermo->Extrapolate(&air, pcoord->dx1f(i), "dry", grav, -upperlapse);
+        UranusExtrapolate(&air, lat, height);
         // add noise                                                                                                              
-        air.w[IVY] = 100* distribution(generator);
-        air.w[IVZ] = 100* distribution(generator);
+        air.w[IVY] = 5* distribution(generator);
+        air.w[IVZ] = 5* distribution(generator);
       }
     }
 }
@@ -299,7 +319,7 @@ void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
         Real longsun = -2*pi*(current_time-dayn*dday)/dday; //in radians
         Real cosomega = sin(lat)*sin(latsun)+cos(lat)*cos(latsun)*cos(longsun-lon);
         if (cosomega>0){
-          Real fluxmax = eq_heat_flux + 3000/exp(current_time/2.E6);
+          Real fluxmax = eq_heat_flux + spin_up_flux/exp(current_time/2.E6);
           user_out_var(6,k,j,i) = fluxmax*cosomega;
         }
         else user_out_var(6,k,j,i) = 0;
