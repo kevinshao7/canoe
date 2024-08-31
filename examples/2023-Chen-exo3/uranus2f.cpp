@@ -79,12 +79,6 @@ void Forcing(MeshBlock *pmb, Real const time, Real const dt,
   auto pexo3 = pmb->pimpl->pexo3;
   Real om_earth = Omega;
   current_time=time;
-  Real coolinglayerheight = 0;
-  for (int i = pmb->is+10; i<= pmb->is+14; ++i){
-    coolinglayerheight += pmb->pcoord->dx1f(i);
-  }
-
-
   for (int k = pmb->ks; k <= pmb->ke; ++k)
     for (int j = pmb->js; j <= pmb->je; ++j)
       for (int i = pmb->is; i <= pmb->ie; ++i) {
@@ -119,7 +113,7 @@ void Forcing(MeshBlock *pmb, Real const time, Real const dt,
         int heatfinishi = 0;
         for (int i = pmb->is; i<= pmb->ie; ++i){
           Real dz = pmb->pcoord->dx1f(i);
-          du(IEN, k, j, i) += 0.9999*Insolation(pmb,k,j,time) * dt / dz / 5; //volume energy denity
+          du(IEN, k, j, i) += 0.9*Insolation(pmb,k,j,time) * dt / dz / 5;
           heatfinishi = i;
           heatinglayers++;
           if (heatinglayers >= 5){
@@ -128,31 +122,29 @@ void Forcing(MeshBlock *pmb, Real const time, Real const dt,
         }         
         //cooling layer 1 
         int coolinglayers=0;                                                                  
-        for (int i = pmb->is+10; i<= pmb->ie; ++i){
+        for (int i = heatfinishi+5; i<= pmb->ie; ++i){
           Real dz = pmb->pcoord->dx1f(i);
-          Real cool_coeff = flux_ratio/dz;
-          Real temp = pmb->phydro->w(IPR, k, j,i) / pmb->phydro->w(IDN, k, j,i) / Rd;
-          // du(IEN, k, j, i) -= dt*cool_coeff*sigma*_qur(temp)/5;
-          // Real temp = pmb->phydro->w(IPR, k, j,i) / pmb->phydro->w(IDN, k, j,i) / Rd;
-          Real deltatemp = pow((3*flux_ratio*sigma*dt/(cv*coolinglayerheight)+(1/_cube(temp))),-(1.0/3.0)) - temp;
-          du(IEN, k, j, i) += cv*deltatemp;
+          du(IEN, k, j, i) -= dt*0.25*( eq_heat_flux + spinupflux/exp( time /5.E6))/10/dz;
           coolinglayers++;
-          if (coolinglayers >= 5){
+          // Real temp = pmb->phydro->w(IPR, k, j,i) / pmb->phydro->w(IDN, k, j,i) / Rd;
+          // Real deltatemp = pow((3*emissivity*sigma*dt/(cv*dz)+(1/_cube(temp))),-(1/3)) - temp;
+          // du(IEN, k, j, i) += cv*deltatemp;
+          if (coolinglayers >= 10){
             break;
           }
         }
         heatinglayers = 0;
-                //heating layer 2
+        //        heating layer 2
         for (int i = pmb->ie; i>= pmb->is; --i){
           Real dz = pmb->pcoord->dx1f(i);
-          du(IEN, k, j, i) += 0.0001*Insolation(pmb,k,j,time) * dt / dz/4;
+          du(IEN, k, j, i) += 0.1*Insolation(pmb,k,j,time) * dt / dz;
           heatinglayers++;
-          if (heatinglayers >= 4){
+          if (heatinglayers >= 1){
             break;
           }
         } 
 
-  // //if(u(IEN, k, j, pmb->ie)<0) u(IEN, k, j, pmb->ie) = 0;                                                                      
+  //if(u(IEN, k, j, pmb->ie)<0) u(IEN, k, j, pmb->ie) = 0;                                                                      
   }
 }
 
@@ -269,8 +261,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
         AirParcelHelper::distribute_to_conserved(this, k, j, i, air);
         pthermo->Extrapolate(&air, pcoord->dx1f(i), "dry", grav, adtdz);
         // add noise                                                                                                              
-        air.w[IVY] = 0.1* distribution(generator);
-        air.w[IVZ] = 0.1* distribution(generator);
+        air.w[IVY] = 10* distribution(generator);
+        air.w[IVZ] = 10* distribution(generator);
       }
     }
 }

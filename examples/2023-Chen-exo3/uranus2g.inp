@@ -4,21 +4,21 @@ reference = Straka et al., 1993
 configure = --patch=drum --coord=spherical_polar --prob=hjupiter --flux=lmars --nghost=3 --pnetcdf_path=../pnetcdf -pnetcdf -mpi
 
 <job>
-problem_id = uranus2e   # problem ID: basename of output filenames
+problem_id = uranus2g   # problem ID: basename of output filenames
 
 <output1>
 file_type  = hst          # History data dump
-dt         = 1E7      # time increment between outputs
+dt         = 1E2      # time increment between outputs
 
 <output2>
 file_type  = pnetcdf      # Binary data dump
 variable   = prim         # variables to be output
-dt         = 1E7      # time increment between outputs
+dt         = 1E2      # time increment between outputs
 
 <output3>
 file_type  = pnetcdf
 variable   = uov
-dt         = 1E7
+dt         = 1E2
 
 <output4>
 file_type  = rst
@@ -38,13 +38,13 @@ x1max      = 2.545E7       # maximum value of X1
 ix1_bc     = reflecting   # inner-X1 boundary flag
 ox1_bc     = reflecting   # outer-X1 boundary flaga
 
-nx2        = 40           # Number of zones in X2-direction
+nx2        = 20           # Number of zones in X2-direction
 x2min      = 0.     # minimum value of X2
 x2max      = 1.E3      # maximum value of X2
 ix2_bc     = periodic        # inner-X2 boundary flag
 ox2_bc     = periodic        # outer-X2 boundary flag
 
-nx3        = 60          # Number of zones in X3-direction
+nx3        = 30          # Number of zones in X3-direction
 x3min      = 0.0          # minimum value of X3
 x3max      = 1.E3      # maximum value of X3
 ix3_bc     = periodic     # inner-X3 boundary flag
@@ -55,8 +55,8 @@ PressureScaleHeight = 2.5E4
 
 <meshblock>
 nx1        = 32
-nx2        = 10
-nx3        = 10
+nx2        = 5
+nx3        = 5
 
 <hydro>
 grav_acc1   = -9.19        #Polar gravity (de Pater Planetary Sciences textbook)

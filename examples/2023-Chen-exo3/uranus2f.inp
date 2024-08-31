@@ -4,7 +4,7 @@ reference = Straka et al., 1993
 configure = --patch=drum --coord=spherical_polar --prob=hjupiter --flux=lmars --nghost=3 --pnetcdf_path=../pnetcdf -pnetcdf -mpi
 
 <job>
-problem_id = uranus2e   # problem ID: basename of output filenames
+problem_id = uranus2f   # problem ID: basename of output filenames
 
 <output1>
 file_type  = hst          # History data dump
@@ -75,5 +75,5 @@ eq_heat_flux= 3.72    #Equilibrium heat flux (de Pater textbook planetary scienc
 sday        = 62092. #Sidereal day in seconds (Lamy 2024)
 syear       = 2.5759E9 #Sidereal year in seconds (Yoder 1995)
 emissivity  = 0.90 #Jupiter is 0.27 (Taylor 1965)
-adtdz = 0.003
+adtdz = -0.0003
 spinupflux = 5000
