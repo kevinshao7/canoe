@@ -16,6 +16,7 @@ else()
   setup_problem(hs94)
   setup_problem(hot_jupiter)
   setup_problem(polar_dry)
+  setup_problem(uranus2e)
 endif()
 
 # 2. Copy input file to run directory
