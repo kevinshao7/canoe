@@ -17,6 +17,10 @@ else()
   setup_problem(hot_jupiter)
   setup_problem(polar_dry)
   setup_problem(uranus2e)
+  setup_problem(uranus2f)
+  setup_problem(uranus2g)
+  setup_problem(uranus2h)
+
 endif()
 
 # 2. Copy input file to run directory
