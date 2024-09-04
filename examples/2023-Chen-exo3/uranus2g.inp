@@ -1,0 +1,79 @@
+<comment>
+problem   = Dense sinking bubble test
+reference = Straka et al., 1993
+configure = --patch=drum --coord=spherical_polar --prob=hjupiter --flux=lmars --nghost=3 --pnetcdf_path=../pnetcdf -pnetcdf -mpi
+
+<job>
+problem_id = uranus2g   # problem ID: basename of output filenames
+
+<output1>
+file_type  = hst          # History data dump
+dt         = 1E7      # time increment between outputs
+
+<output2>
+file_type  = pnetcdf      # Binary data dump
+variable   = prim         # variables to be output
+dt         = 1E7      # time increment between outputs
+
+<output3>
+file_type  = pnetcdf
+variable   = uov
+dt         = 1E7
+
+<output4>
+file_type  = rst
+dt         = 1E7
+
+<time>
+cfl_number = 0.9          # The Courant, Friedrichs, & Lewy (CFL) Number
+nlim       = -1           # cycle limit
+tlim       = 4E10     # time limit
+xorder     = 5            # horizontal reconstruction order
+integrator = rk3          # integration method
+
+<mesh>
+nx1        = 32           # Number of zones in X1-direction
+x1min      = 2.515E7         # minimum value of X1
+x1max      = 2.545E7       # maximum value of X1
+ix1_bc     = reflecting   # inner-X1 boundary flag
+ox1_bc     = reflecting   # outer-X1 boundary flaga
+
+nx2        = 20           # Number of zones in X2-direction
+x2min      = 0.     # minimum value of X2
+x2max      = 1.E3      # maximum value of X2
+ix2_bc     = periodic        # inner-X2 boundary flag
+ox2_bc     = periodic        # outer-X2 boundary flag
+
+nx3        = 30          # Number of zones in X3-direction
+x3min      = 0.0          # minimum value of X3
+x3max      = 1.E3      # maximum value of X3
+ix3_bc     = periodic     # inner-X3 boundary flag
+ox3_bc     = periodic     # outer-X3 boundary flag
+
+ReferencePressure = 1.E5
+PressureScaleHeight = 2.5E4
+
+<meshblock>
+nx1        = 32
+nx2        = 10
+nx3        = 10
+
+<hydro>
+grav_acc1   = -9.19        #Polar gravity (de Pater Planetary Sciences textbook)
+gamma       = 1.456        # gamma = C_p/C_v, (Justh, 2021) heat capacity ratio, NOT adiabatic lapse rate
+implicit_flag = 9
+
+<thermodynamics>
+Rd          = 3402.268       # Gas constant (Justh 2021)
+
+<problem>
+Ts          = 60.            # Surface temperature at equilibrium, K
+Tint        = 180.             #Initial temperature at Surface 
+p0          = 1.E6             # Surface pressure, Pa (by convention)
+Rp          = 2.525E7            # Polar Planetary Radius, m (de Pater textbook), should be greater than x1min, otherwise division by zero
+eq_heat_flux= 3.72    #Equilibrium heat flux (de Pater textbook planetary sciences)
+sday        = 62092. #Sidereal day in seconds (Lamy 2024)
+syear       = 2.5759E9 #Sidereal year in seconds (Yoder 1995)
+emissivity  = 0.90 #Jupiter is 0.27 (Taylor 1965)
+adtdz = 0.0005
+spinupflux = 5000
