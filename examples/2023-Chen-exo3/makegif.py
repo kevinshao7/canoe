@@ -9,7 +9,7 @@ import matplotlib as mpl
 from PIL import Image
 
 # Path to your single combined .nc file
-filepath = "cart_uranus2e-main.nc"
+filepath = "cart_uranus2j-main.nc"
 
 
 with Dataset(filepath, mode="r") as nc:
@@ -30,15 +30,15 @@ a = np.array([[1],[0.5],[0.25],[0.2]])
 steparr = steparr*a
 
 
-def makegif(data,folder,trim,title,short,cmap="RdYlBu"):
+def makegif(data,folder,trim,title,short,cmap="RdYlBu",frames=len(time)):
     # Meshgrid of 2D coordinates.
     Lon, Lat = np.meshgrid(lon, lat)
     # Start the figure, make sure it's square and turn off the Axes labels.
     fig, ax = plt.subplots()
     # ax.axis('equal')
     # ax.axis('off')
-    vmax = np.percentile(np.mean(data[:,:,:,:],axis=1),100-trim)
-    vmin = np.percentile(np.mean(data[:,:,:,:],axis=1),trim)
+    vmax = np.percentile(np.mean(data[:frames,:,:,:],axis=1),100-trim)
+    vmin = np.percentile(np.mean(data[:frames,:,:,:],axis=1),trim)
     A = np.square(steparr/(vmax-vmin)-0.05)
     n,m = np.unravel_index(A.argmin(), A.shape)
     step = steparr[n,m]
@@ -62,18 +62,18 @@ def makegif(data,folder,trim,title,short,cmap="RdYlBu"):
         plt.title('Uranus {0} t={1:.2e}y'.format(title,time[i]/secperyear))
         return cf
 
-    anim = animation.FuncAnimation(fig, animate, frames=len(time), repeat=False)
+    anim = animation.FuncAnimation(fig, animate, frames=frames, repeat=False)
     anim.save('{}/uranus{}.gif'.format(folder,short), fps=5)
 
-def makeprofgif(data,folder,trim,title,short,cmap="RdYlBu"):
+def makeprofgif(data,folder,trim,title,short,cmap="RdYlBu",frames=len(time)):
     # Meshgrid of 2D coordinates.
     Lon, Lat = np.meshgrid(lon, lat)
     # Start the figure, make sure it's square and turn off the Axes labels.
     fig, ax = plt.subplots()
     # ax.axis('equal')
     # ax.axis('off)
-    vmax = np.percentile(np.mean(data[:,:,:,:],axis=3),100-trim)
-    vmin = np.percentile(np.mean(data[:,:,:,:],axis=3),trim)
+    vmax = np.percentile(np.mean(data[:frames,:,:,:],axis=3),100-trim)
+    vmin = np.percentile(np.mean(data[:frames,:,:,:],axis=3),trim)
     A = np.square(steparr/(vmax-vmin)-0.05)
     n,m = np.unravel_index(A.argmin(), A.shape)
     step = steparr[n,m]
@@ -97,7 +97,7 @@ def makeprofgif(data,folder,trim,title,short,cmap="RdYlBu"):
         plt.title('Uranus {0} t={1:.2e}y'.format(title,time[i]/secperyear))
         return cf
 
-    anim = animation.FuncAnimation(fig, animate, frames=len(time), repeat=False)
+    anim = animation.FuncAnimation(fig, animate, frames=frames, repeat=False)
     anim.save('{}/uranus{}prof.gif'.format(folder,short), fps=5)
 
 
@@ -105,5 +105,8 @@ def makeprofgif(data,folder,trim,title,short,cmap="RdYlBu"):
 folder = "gifs"
 if not(os.path.isdir(folder)):
     os.makedirs(folder)
-makegif(vlat,folder,2,"Zonal Wind (m/s)","2ezw")
-makeprofgif(vlat,folder,2,"Zonal Wind (m/s)","2ezw")
+makegif(np.log10(press),folder,2,"Pressure (log(Pa))","2jpress",frames=32)
+makeprofgif(np.log10(press),folder,2,"Pressure Profile (log(Pa))","2jpress",frames=32)
+# print(time)
+# print(vlat[:32,:,:,:])
+#use seismic colour map for temperature
