@@ -102,11 +102,19 @@ def makeprofgif(data,folder,trim,title,short,cmap="RdYlBu",frames=len(time)):
 
 
 #######
-folder = "gifs"
+folder = "gifs2"
 if not(os.path.isdir(folder)):
     os.makedirs(folder)
-makegif(np.log10(press),folder,2,"Pressure (log(Pa))","2jpress",frames=32)
-makeprofgif(np.log10(press),folder,2,"Pressure Profile (log(Pa))","2jpress",frames=32)
+# makegif(np.log10(press),folder,2,"Pressure (log(Pa))","2jpress",frames=197-32)
+# makeprofgif(np.log10(press),folder,2,"Pressure Profile (log(Pa))","2jpress",frames=197-32)
+# makegif(temp,folder,2,"Temperature (K)","2jtemp",frames=197-32,cmap="seismic")
+# makeprofgif(temp,folder,2,"Temperature (K)","2jtemp",frames=197-32,cmap="seismic")
+# makegif(vlat,folder,2,"Zonal Wind (m/s)","2jzw",frames=197-32)
+# makeprofgif(vlat,folder,2,"Zonal Wind (m/s)","2jzw",frames=197-32)
+# makegif(vel1,folder,2,"Vertical Wind (m/s)","2jvw",frames=197-32)
+# makeprofgif(vel1,folder,2,"Vertical Wind (m/s)","2jvw",frames=197-32)
+makegif(vlon,folder,2,"Meridional Wind (m/s)","2jmw",frames=197-32)
+makeprofgif(vlon,folder,2,"Meridional Wind (m/s)","2jmw",frames=197-32)
 # print(time)
 # print(vlat[:32,:,:,:])
 #use seismic colour map for temperature
