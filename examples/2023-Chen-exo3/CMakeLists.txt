@@ -22,7 +22,7 @@ else()
   # setup_problem(uranus2h)
   #setup_problem(uranus2i)
   setup_problem(uranus2j)
-  setup_problem(uranus2k)
+  setup_problem(uranus2l)
 endif()
 
 # 2. Copy input file to run directory

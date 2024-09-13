@@ -4,7 +4,7 @@ reference = Straka et al., 1993
 configure = --patch=drum --coord=spherical_polar --prob=hjupiter --flux=lmars --nghost=3 --pnetcdf_path=../pnetcdf -pnetcdf -mpi
 
 <job>
-problem_id = uranus2k   # problem ID: basename of output filenames
+problem_id = uranus2l   # problem ID: basename of output filenames
 
 <output1>
 file_type  = hst          # History data dump
