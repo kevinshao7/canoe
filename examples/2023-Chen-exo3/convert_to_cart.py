@@ -8,7 +8,7 @@ import os
 filepath = "hotjupiter-main.nc"
 
 # Variables to process
-variables_to_process = ["temp", "theta", "vlat", "vlon", "vel1"]
+variables_to_process = ["temp", "theta", "vlat", "vlon", "vel1","press"]
 
 
 # Function to interpolate and extrapolate data

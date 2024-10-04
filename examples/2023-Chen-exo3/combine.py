@@ -118,13 +118,12 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     cases, fields, stamps = ParseOutputFields(args["dir"])
-    # cases = ["uranus2k"]
-    # fields = ["out2","out3"]
+    # cases = ["uranus2m"]
     # stamps = []
-    # for i in range(20,1309):
+    # for i in range(2):
     #     stamps.append("{:05d}".format(i))
-
-    fields.sort()
+    # print(stamps)
+    # fields.sort()
 
     print("##########################")
     print("## Combine output files ##")
