@@ -71,9 +71,9 @@ std::normal_distribution<double> distribution(0.0, 1.0);
 
 Real Tempprof(Real logp,Real lat){
   Real lat2 = _sqr(lat);
-  latvar = 0.8118*_qur(lat2)-4.831*_cube(lat2)+9.868*_sqr(lat2)-7.076*lat2+54.12-53.298;
+  Real latvar = 0.8118*_qur(lat2)-4.831*_cube(lat2)+9.868*_sqr(lat2)-7.076*lat2+54.12-53.298;
   return (0.3269*_qur(logp)-0.818*_cube(logp)-1.86*_sqr(logp)-27.03*logp+161.7)+latvar;
-
+  //return 53.298+latvar;
 }
 
 
@@ -281,7 +281,7 @@ void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
         user_out_var(4, k, j, i) = U;
         user_out_var(5, k, j, i) = V;
         Real logpress = log10(phydro->w(IPR, k, j,i));
-        Real Teq = Tempprof(logpress);
+        Real Teq = Tempprof(logpress,lat);
         Real Temp =  phydro->w(IPR, k, j,i) / phydro->w(IDN, k, j,i) / Rd;
         Real parcelmass = pcoord->GetCellVolume(k,j,i)*phydro->w(IDN, k, j,i);
         user_out_var(6,k,j,i) = (cp - Rd) * phydro->w(IDN, k, j, i) * Kt * (Teq-Temp);
