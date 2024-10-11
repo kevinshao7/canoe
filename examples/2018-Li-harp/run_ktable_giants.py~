@@ -54,8 +54,8 @@ if __name__ == "__main__":
     config = load_configure(opacity_config)
 
     bnames = list(map(str, config["bands"]))
-    #for bname in bnames:
-     #   run_ktable_one_band(bname)
+    for bname in bnames:
+        run_ktable_one_band(bname)
 
-    pool = Pool(max_threads)
-    pool.map(run_ktable_one_band, bnames)
+    # pool = Pool(max_threads)
+    # pool.map(run_ktable_one_band, bnames)
