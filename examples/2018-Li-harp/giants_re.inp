@@ -2,7 +2,7 @@
 problem     = Generatel 1D Giant Planet radiation calculation
 
 <job>
-problem_id  = jupiter1d     # problem ID: basename of output filenames
+problem_id  = uranus1d2     # problem ID: basename of output filenames
 
 <output1>
 file_type   = hst           # History data dump
@@ -20,15 +20,15 @@ dt          = 1.E4          # time increment
 
 <time>
 cfl_number  = 0.9
-nlim        = 1            # cycle limit
+nlim        = -1            # cycle limit
 tlim        = 2.E5
 xorder      = 5             # horizontal reconstruction order
 integrator  = rk3           # integration method
 
 <mesh>
 nx1         = 100           # Number of zones in X1-direction
-x1min       = -400.E3       # minimum value of X1
-x1max       = 100.E3        # maximum value of X1
+x1min       = 0.       # minimum value of X1
+x1max       = 200.E3        # maximum value of X1
 ix1_bc      = reflecting    # Inner-X1 boundary condition flag
 ox1_bc      = reflecting    # Outer-X1 boundary condition flag
 
@@ -45,22 +45,22 @@ ix3_bc      = periodic      # Inner-X3 boundary condition flag
 ox3_bc      = periodic      # Outer-X3 boundary condition flag
 
 <hydro>
-gamma       = 1.42
-grav_acc1   = -24.79
-implicit_flag = 1
+gamma       = 1.456
+grav_acc1   = -9.19
+implicit_flag = 1 #should change to 9?
 
 <thermodynamics>
-Rd          = 3777.   # mu = 2.3175 g/mol
+Rd          = 3402.268.   # mu = 2.3175 g/mol
 
 <species>
 tracer = CH4, C2H2, C2H4, C2H6
 
 <radiation>
-dt = 40.
-radiation_config = giants-lbl.yaml
+dt = 400. #time
+radiation_config = giants-ck.yaml
 nstr = 4
 
 <problem>
-P0          = 1.E5
-T0          = 169.
-Tmin        = 110.
+P0          = 3.E5
+T0          = 120.
+Tmin        = 59.

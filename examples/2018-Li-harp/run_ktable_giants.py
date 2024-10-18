@@ -43,7 +43,7 @@ def run_ktable_one_band(bname: str):
 if __name__ == "__main__":
     canoe.start()
 
-    atm_profile = "new_jup_lat30_modelc.atm"
+    atm_profile = "new_uran_lat30_modelc.atm"
     opacity_config = "giants-op.yaml"
     opacity_output = "giants-lbl"
     tem_grid = (5, -50, 50)
