@@ -32,19 +32,19 @@ xorder     = 5            # horizontal reconstruction order
 integrator = rk3          # integration method
 
 <mesh>
-nx1        = 32          # Number of zones in X1-direction
-x1min      = 2.505E7         # minimum value of X1
-x1max      = 2.545E7       # maximum value of X1
+nx1        = 27          # Number of zones in X1-direction
+x1min      = 2.525E7         # minimum value of X1
+x1max      = 2.555E7       # maximum value of X1
 ix1_bc     = reflecting   # inner-X1 boundary flag
 ox1_bc     = reflecting   # outer-X1 boundary flaga
 
-nx2        = 40           # Number of zones in X2-direction
+nx2        = 18           # Number of zones in X2-direction
 x2min      = 0.     # minimum value of X2
 x2max      = 1.E3      # maximum value of X2
 ix2_bc     = periodic        # inner-X2 boundary flag
 ox2_bc     = periodic        # outer-X2 boundary flag
 
-nx3        = 60          # Number of zones in X3-direction
+nx3        = 27          # Number of zones in X3-direction
 x3min      = 0.0          # minimum value of X3
 x3max      = 1.E3      # maximum value of X3
 ix3_bc     = periodic     # inner-X3 boundary flag
@@ -54,9 +54,9 @@ ReferencePressure = 1.E5
 PressureScaleHeight = 2.5E4
 
 <meshblock>
-nx1        = 32
-nx2        = 10
-nx3        = 10
+nx1        = 27
+nx2        = 9
+nx3        = 9
 
 <hydro>
 grav_acc1   = -9.19        #Polar gravity (de Pater Planetary Sciences textbook)
@@ -68,8 +68,8 @@ Rd          = 3402.268       # Gas constant (Justh 2021)
 
 <problem>
 Ts          = 59.            # Surface temperature at equilibrium, K
-Tint        = 100.             #Initial temperature at Surface 
-p0          = 2.E5             # Surface pressure, Pa (by convention)
+Tint        = 135.             #Initial temperature at Surface 
+p0          = 1.E5             # Surface pressure, Pa (by convention)
 Rp          = 2.525E7            # Polar Planetary Radius, m (de Pater textbook), should be greater than x1min, otherwise division by zero
 eq_heat_flux= 0.    #Equilibrium heat flux (de Pater textbook planetary sciences)
 sday        = 62092. #Sidereal day in seconds (Lamy 2024)
@@ -78,4 +78,5 @@ emissivity  = 0.90 #Jupiter is 0.27 (Taylor 1965)
 adtdz = 0.001
 spinupflux = 0
 initheatdecay = 2.E8
-Kt = 1.E-7
+Kt = -1.E-8
+sponge_tau = 1E5. #taken from hot jupiter case

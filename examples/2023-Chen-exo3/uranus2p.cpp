@@ -4,7 +4,7 @@
 // contributors Licensed under the 3-clause BSD License, see LICENSE file for                                                     
 // details                                                                                                                        
 //========================================================================================                                        
-//uranus.2a added realistic solar flux, start with high flux and decrease towards equilibrium
+//uranus2p Newtonian cooling to specified temperature profile, including latitudinal variation
 
 // C++ headers                                                                                                                    
 #include <cmath>
@@ -42,7 +42,7 @@
 
 using namespace std;
 
-static Real p0, Rd, cp, Ts, Rp, grav, eq_heat_flux,sday,syear, pi, dday, Omega, sigma, emissivity,adtdz,cv,spinupflux,flux_ratio,Tint,initheatdecay,Kt;
+static Real p0, Rd, cp, Ts, Rp, grav, eq_heat_flux,sday,syear, pi, dday, Omega, sigma, emissivity,adtdz,cv,spinupflux,flux_ratio,Tint,initheatdecay,Kt,sponge_tau;
 std::default_random_engine generator;
 std::normal_distribution<double> distribution(0.0, 1.0);                                                                       
 
@@ -71,8 +71,8 @@ std::normal_distribution<double> distribution(0.0, 1.0);
 
 Real Tempprof(Real logp,Real lat){
   Real lat2 = _sqr(lat);
-  Real latvar = 0.8118*_qur(lat2)-4.831*_cube(lat2)+9.868*_sqr(lat2)-7.076*lat2+54.12-53.298;
-  return (0.3269*_qur(logp)-0.818*_cube(logp)-1.86*_sqr(logp)-27.03*logp+161.7)+latvar;
+  Real latvar = 0.811822073*_qur(lat2)-4.83101661*_cube(lat2)+9.86785301*_sqr(lat2)-7.07595388*lat2+54.12-54.1163279;
+  return (0.46680277*_qur(logp)-2.75385296*_cube(logp)+5.82259532*_sqr(logp)-32.38603028*logp+153.5565778)+latvar;
   //return 53.298+latvar;
 }
 
@@ -109,7 +109,7 @@ void Forcing(MeshBlock *pmb, Real const time, Real const dt,
         pexo3->ContravariantVectorToCovariant(j, k, acc2, acc3, &acc2, &acc3);
         du(IM2, k, j, i) += dt * acc2;
         du(IM3, k, j, i) += dt * acc3;
-      }
+      } 
 
     // Heating   
   for (int k = pmb->ks; k <= pmb->ke; ++k)
@@ -120,8 +120,16 @@ void Forcing(MeshBlock *pmb, Real const time, Real const dt,
           pexo3->GetLatLon(&lat, &lon, k, j, i);
           Real Teq = Tempprof(logpress,lat);
           Real Temp =  pmb->phydro->w(IPR, k, j,i) / pmb->phydro->w(IDN, k, j,i) / Rd;
-          du(IEN, k, j, i) +=  dt * (cp - Rd) * pmb->phydro->w(IDN, k, j, i) * Kt * (Teq-Temp);
+          du(IEN, k, j, i) += dt*(cp - Rd) * w(IDN, k, j, i) * Kt * (Temp-Teq);
+          Real z = pmb->pcoord->x1v(i) - Rp;
+          if (z > 270.E3) {  // sponge layer at top and bottom
+            Real tau = sponge_tau;
+            du(IVX, k, j, i) -= w(IVX, k, j, i) * (dt / tau) * w(IDN, k, j, i);
+            du(IVY, k, j, i) -= w(IVY, k, j, i) * (dt / tau) * w(IDN, k, j, i);
+            du(IVZ, k, j, i) -= w(IVZ, k, j, i) * (dt / tau) * w(IDN, k, j, i);
         }
+      }
+        
 
     // if(u(IEN, k, j, pmb->ie)<0) u(IEN, k, j, pmb->ie) = 0;                                                                      
   }
@@ -222,6 +230,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   adtdz = pin->GetReal("problem", "adtdz");
   spinupflux = pin->GetReal("problem", "spinupflux");
   initheatdecay = pin->GetReal("problem", "initheatdecay");
+  sponge_tau = pin->GetReal("problem", "sponge_tau");
   cp = gamma / (gamma - 1.) * Rd;
   pi = 3.14159265;
   dday = syear/(1+syear/sday); //diurnal day inseconds
@@ -284,7 +293,8 @@ void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
         Real Teq = Tempprof(logpress,lat);
         Real Temp =  phydro->w(IPR, k, j,i) / phydro->w(IDN, k, j,i) / Rd;
         Real parcelmass = pcoord->GetCellVolume(k,j,i)*phydro->w(IDN, k, j,i);
-        user_out_var(6,k,j,i) = (cp - Rd) * phydro->w(IDN, k, j, i) * Kt * (Teq-Temp);
+        user_out_var(6,k,j,i) = (cp - Rd) * phydro->w(IDN, k, j, i) * Kt * (Temp-Teq);
+        //user_out_var(6,k,j,i) = Tempprof(logpress,lat);
     }
 }
 

@@ -109,86 +109,93 @@ void Forcing(MeshBlock *pmb, Real const time, Real const dt,
       }
 
     // Heating   
-  // Real heatpreslayers[2] = {3.e2,8.e3}; 
-  // Real heatlayerweight[2] = {1,1}; //weighted by mass
-  // Real coolpreslayers[4]= {1.5e1,1.e3,3.e4,9.e4};
-  // Real coollayerweight[4] = {1,1,1,0.7};
-  // Real cooleqtemp[4] = {120,75,60,80};            
-  // Real numcoollayers = sizeof(coolpreslayers) / sizeof(coolpreslayers[0]);
-  // Real numheatlayers = sizeof(heatpreslayers) / sizeof(heatpreslayers[0]);
-  // //Normalize weights
-  // Real total = 0;
-  // for (int i=0; i< numcoollayers; i++){ 
-  //   total += coollayerweight[i];
-  // }
-  //   for (int i=0; i< numcoollayers; i++){ 
-  //   coollayerweight[i] = coollayerweight[i]/total;
-  // }
-  // total = 0;
-  // for (int i=0; i< numheatlayers; i++){ 
-  //   total += heatlayerweight[i];
-  // }
-  //   for (int i=0; i< numheatlayers; i++){ 
-  //   heatlayerweight[i] = heatlayerweight[i]/total;
-  // }
+  Real heatpreslayers[2] = {3.e2,8.e3}; 
+  Real heatlayerweight[2] = {1,1}; //weighted by mass
+  Real coolpreslayers[4]= {1.5e1,1.e3,3.e4,9.e4};
+  Real coollayerweight[4] = {1,1,1,0.7};
+  Real cooleqtemp[4] = {120,75,60,80};            
+  Real numcoollayers = sizeof(coolpreslayers) / sizeof(coolpreslayers[0]);
+  Real numheatlayers = sizeof(heatpreslayers) / sizeof(heatpreslayers[0]);
+  //Normalize weights
+  Real total = 0;
+  for (int i=0; i< numcoollayers; i++){ 
+    total += coollayerweight[i];
+  }
+    for (int i=0; i< numcoollayers; i++){ 
+    coollayerweight[i] = coollayerweight[i]/total;
+  }
+  total = 0;
+  for (int i=0; i< numheatlayers; i++){ 
+    total += heatlayerweight[i];
+  }
+    for (int i=0; i< numheatlayers; i++){ 
+    heatlayerweight[i] = heatlayerweight[i]/total;
+  }
 
-  // for (int k = pmb->ks; k <= pmb->ke; ++k)
-  //     for (int j = pmb->js; j <= pmb->je; ++j) {
+  for (int k = pmb->ks; k <= pmb->ke; ++k)
+      for (int j = pmb->js; j <= pmb->je; ++j) {
 
-  //       //Calculate total column heating and cooling
-  //       Real totcolheat = Insolation(pmb,k,j,time); //W/m^2, an additionall 14% from core heating
-  //       Real totcolcool = 1.14*0.25*eq_heat_flux; //at equilibrium temperature
+        //Calculate total column heating and cooling
+        Real totcolheat = Insolation(pmb,k,j,time); //W/m^2, an additionall 14% from core heating
+        Real totcolcool;
+        if (time > 5.E9){
+          totcolcool = 1.14*0.25*eq_heat_flux; //at equilibrium temperature
+        }
+        else{
+          Real fluxmax = eq_heat_flux + spinupflux/exp( time /initheatdecay);
+          totcolcool = 1.14*0.25*fluxmax; //at equilibrium temperature
+        }
 
-  //       //calculate total mass for cooling
-  //       Real totcoolmass = 0;
-  //       int currentcoollayer = 0;
-  //       for (int i = pmb->is; i <= pmb->ie; ++i){
-  //         if (currentcoollayer>=numcoollayers) break;
-  //         if (pmb->phydro->w(IPR, k, j,i) < coolpreslayers[currentcoollayer]){
-  //           totcoolmass += coollayerweight[currentcoollayer]*pmb->pcoord->GetCellVolume(k,j,i)*pmb->phydro->w(IDN, k, j,i);
-  //           currentcoollayer++;
-  //         }
-  //       }
+        //calculate total mass for cooling
+        Real totcoolmass = 0;
+        int currentcoollayer = 0;
+        for (int i = pmb->is; i <= pmb->ie; ++i){
+          if (currentcoollayer>=numcoollayers) break;
+          if (pmb->phydro->w(IPR, k, j,i) < coolpreslayers[currentcoollayer]){
+            totcoolmass += coollayerweight[currentcoollayer]*pmb->pcoord->GetCellVolume(k,j,i)*pmb->phydro->w(IDN, k, j,i);
+            currentcoollayer++;
+          }
+        }
 
-  //       //calculate total mass for heating
-  //       Real totheatmass = 0;
-  //       int currentheatlayer = 0;
-  //       for (int i = pmb->is; i <= pmb->ie; ++i){
-  //         if (currentheatlayer>=numheatlayers) break;
-  //         if (pmb->phydro->w(IPR, k, j,i) < heatpreslayers[currentheatlayer]){
-  //           totheatmass += heatlayerweight[currentheatlayer]*pmb->pcoord->GetCellVolume(k,j,i)*pmb->phydro->w(IDN, k, j,i);
-  //           currentheatlayer++;
-  //         }
-  //       }
+        //calculate total mass for heating
+        Real totheatmass = 0;
+        int currentheatlayer = 0;
+        for (int i = pmb->is; i <= pmb->ie; ++i){
+          if (currentheatlayer>=numheatlayers) break;
+          if (pmb->phydro->w(IPR, k, j,i) < heatpreslayers[currentheatlayer]){
+            totheatmass += heatlayerweight[currentheatlayer]*pmb->pcoord->GetCellVolume(k,j,i)*pmb->phydro->w(IDN, k, j,i);
+            currentheatlayer++;
+          }
+        }
 
-  //       //heating forcing
-  //       currentheatlayer = 0;
-  //       for (int i = pmb->is; i <= pmb->ie; ++i){
-  //         if (currentheatlayer>=numheatlayers) break;
-  //         if (pmb->phydro->w(IPR, k, j,i) < heatpreslayers[currentheatlayer]){
-  //           Real dz = pmb->pcoord->dx1f(i);
-  //           du(IEN, k, j, i) += heatlayerweight[currentheatlayer]*pmb->pcoord->GetCellVolume(k,j,i)*pmb->phydro->w(IDN, k, j,i)*totcolheat * (dt / dz) /totheatmass; //Weight by heating mass
-  //           currentheatlayer++;
-  //         }
-  //       }
-  //       //cooling forcing
-  //       currentcoollayer = 0;
-  //       for (int i = pmb->is; i <= pmb->ie; ++i){
-  //         if (currentcoollayer>=numcoollayers) break;
-  //         if (pmb->phydro->w(IPR, k, j,i) < coolpreslayers[currentcoollayer]){
-  //           Real eqcoolflux = totcolcool*coollayerweight[currentcoollayer]*pmb->pcoord->GetCellVolume(k,j,i)*pmb->phydro->w(IDN, k, j,i)/totcoolmass;
-  //           Real dz = pmb->pcoord->dx1f(i);
-  //           Real temp = pmb->phydro->w(IPR, k, j,i) / pmb->phydro->w(IDN, k, j,i) / Rd;
-  //           du(IEN, k, j, i) -= dt*eqcoolflux*_qur(temp/cooleqtemp[currentcoollayer])/dz;
-  //           currentcoollayer++;
-  //         }
-  //       }
-  //       //core heating
-  //       Real dz = pmb->pcoord->dx1f(pmb->is);
-  //       du(IEN, k, j, pmb->is) += dt*0.14*0.25*eq_heat_flux/dz;
+        //heating forcing
+        currentheatlayer = 0;
+        for (int i = pmb->is; i <= pmb->ie; ++i){
+          if (currentheatlayer>=numheatlayers) break;
+          if (pmb->phydro->w(IPR, k, j,i) < heatpreslayers[currentheatlayer]){
+            Real dz = pmb->pcoord->dx1f(i);
+            du(IEN, k, j, i) += heatlayerweight[currentheatlayer]*pmb->pcoord->GetCellVolume(k,j,i)*pmb->phydro->w(IDN, k, j,i)*totcolheat * (dt / dz) /totheatmass; //Weight by heating mass
+            currentheatlayer++;
+          }
+        }
+        //cooling forcing
+        currentcoollayer = 0;
+        for (int i = pmb->is; i <= pmb->ie; ++i){
+          if (currentcoollayer>=numcoollayers) break;
+          if (pmb->phydro->w(IPR, k, j,i) < coolpreslayers[currentcoollayer]){
+            Real eqcoolflux = totcolcool*coollayerweight[currentcoollayer]*pmb->pcoord->GetCellVolume(k,j,i)*pmb->phydro->w(IDN, k, j,i)/totcoolmass;
+            Real dz = pmb->pcoord->dx1f(i);
+            Real temp = pmb->phydro->w(IPR, k, j,i) / pmb->phydro->w(IDN, k, j,i) / Rd;
+            du(IEN, k, j, i) -= dt*eqcoolflux*_qur(temp/cooleqtemp[currentcoollayer])/dz;
+            currentcoollayer++;
+          }
+        }
+        //core heating
+        Real dz = pmb->pcoord->dx1f(pmb->is);
+        du(IEN, k, j, pmb->is) += dt*0.14*0.25*eq_heat_flux/dz;
 
   // // //if(u(IEN, k, j, pmb->ie)<0) u(IEN, k, j, pmb->ie) = 0;                                                                      
-  // }
+  }
 }
 
 Real AngularMomentum(MeshBlock *pmb, int iout) {

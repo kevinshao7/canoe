@@ -8,17 +8,17 @@ problem_id = uranus2n   # problem ID: basename of output filenames
 
 <output1>
 file_type  = hst          # History data dump
-dt         = 1E5      # time increment between outputs
+dt         = 5E6      # time increment between outputs
 
 <output2>
 file_type  = pnetcdf      # Binary data dump
 variable   = prim         # variables to be output
-dt         = 1E5      # time increment between outputs
+dt         = 5E6      # time increment between outputs
 
 <output3>
 file_type  = pnetcdf
 variable   = uov
-dt         = 1E5
+dt         = 5E6
 
 <output4>
 file_type  = rst
@@ -33,8 +33,8 @@ integrator = rk3          # integration method
 
 <mesh>
 nx1        = 27          # Number of zones in X1-direction
-x1min      = 2.505E7         # minimum value of X1
-x1max      = 2.575E7       # maximum value of X1
+x1min      = 2.525E7         # minimum value of X1
+x1max      = 2.565E7       # maximum value of X1
 ix1_bc     = reflecting   # inner-X1 boundary flag
 ox1_bc     = reflecting   # outer-X1 boundary flaga
 
@@ -71,10 +71,10 @@ Ts          = 59.            # Surface temperature at equilibrium, K
 Tint        = 135.             #Initial temperature at Surface 
 p0          = 2.E5             # Surface pressure, Pa (by convention)
 Rp          = 2.525E7            # Polar Planetary Radius, m (de Pater textbook), should be greater than x1min, otherwise division by zero
-eq_heat_flux= 0.    #Equilibrium heat flux (de Pater textbook planetary sciences)
+eq_heat_flux= 3.72    #Equilibrium heat flux (de Pater textbook planetary sciences)
 sday        = 62092. #Sidereal day in seconds (Lamy 2024)
 syear       = 2.5759E9 #Sidereal year in seconds (Yoder 1995)
 emissivity  = 0.90 #Jupiter is 0.27 (Taylor 1965)
 adtdz = 0.001
-spinupflux = 0
-initheatdecay = 2.E8
+spinupflux = 2000
+initheatdecay = 1.E8
