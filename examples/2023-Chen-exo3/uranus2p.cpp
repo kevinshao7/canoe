@@ -42,7 +42,7 @@
 
 using namespace std;
 
-static Real p0, Rd, cp, Ts, Rp, grav, eq_heat_flux,sday,syear, pi, dday, Omega, sigma, emissivity,adtdz,cv,spinupflux,flux_ratio,Tint,initheatdecay,Kt,sponge_tau;
+static Real p0, Rd, cp, Ts, Rp, grav, eq_heat_flux,sday,syear, pi, dday, Omega, sigma, emissivity,adtdz,cv,spinupflux,flux_ratio,Tint,initheatdecay,Kt,sponge_tau,spongeheight;
 std::default_random_engine generator;
 std::normal_distribution<double> distribution(0.0, 1.0);                                                                       
 
@@ -122,7 +122,7 @@ void Forcing(MeshBlock *pmb, Real const time, Real const dt,
           Real Temp =  pmb->phydro->w(IPR, k, j,i) / pmb->phydro->w(IDN, k, j,i) / Rd;
           du(IEN, k, j, i) += dt*(cp - Rd) * w(IDN, k, j, i) * Kt * (Temp-Teq);
           Real z = pmb->pcoord->x1v(i) - Rp;
-          if (z > 270.E3) {  // sponge layer at top and bottom
+          if (z > spongeheight) {  // sponge layer at top and bottom
             Real tau = sponge_tau;
             du(IVX, k, j, i) -= w(IVX, k, j, i) * (dt / tau) * w(IDN, k, j, i);
             du(IVY, k, j, i) -= w(IVY, k, j, i) * (dt / tau) * w(IDN, k, j, i);
@@ -231,6 +231,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
   spinupflux = pin->GetReal("problem", "spinupflux");
   initheatdecay = pin->GetReal("problem", "initheatdecay");
   sponge_tau = pin->GetReal("problem", "sponge_tau");
+  spongeheight = pin->GetReal("problem", "spongeheight");
+  Kt = pin->GetReal("problem", "Kt"); //specific cooling/heating rate
   cp = gamma / (gamma - 1.) * Rd;
   pi = 3.14159265;
   dday = syear/(1+syear/sday); //diurnal day inseconds
@@ -257,7 +259,7 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin) {
 }
 
 void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
-  AllocateUserOutputVariables(7);
+  AllocateUserOutputVariables(8);
   SetUserOutputVariableName(0, "temp");
   SetUserOutputVariableName(1, "theta");
   SetUserOutputVariableName(2, "lat");
@@ -265,6 +267,7 @@ void MeshBlock::InitUserMeshBlockData(ParameterInput *pin) {
   SetUserOutputVariableName(4, "vlat");
   SetUserOutputVariableName(5, "vlon");
   SetUserOutputVariableName(6, "forcing");
+  SetUserOutputVariableName(7, "goalprof");
 }
 
 
@@ -294,6 +297,7 @@ void MeshBlock::UserWorkBeforeOutput(ParameterInput *pin) {
         Real Temp =  phydro->w(IPR, k, j,i) / phydro->w(IDN, k, j,i) / Rd;
         Real parcelmass = pcoord->GetCellVolume(k,j,i)*phydro->w(IDN, k, j,i);
         user_out_var(6,k,j,i) = (cp - Rd) * phydro->w(IDN, k, j, i) * Kt * (Temp-Teq);
+        user_out_var(7,k,j,i) = Teq;
         //user_out_var(6,k,j,i) = Tempprof(logpress,lat);
     }
 }
