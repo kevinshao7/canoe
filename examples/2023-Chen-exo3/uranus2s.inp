@@ -58,7 +58,7 @@ nx2        = 12 #nx2 =nx3 for square mesh panel
 nx3        = 12
 
 <hydro>
-grav_acc1   = -9.19        #Averaged polar and equatorial gravity (de Pater Planetary Sciences textbook) 
+grav_acc1   = -9.19        #Polar gravity (de Pater Planetary Sciences textbook) 
 gamma       = 1.456        # gamma = C_p/C_v, (Justh, 2021) heat capacity ratio, NOT adiabatic lapse rate
 implicit_flag = 9
 
