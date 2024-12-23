@@ -9,8 +9,12 @@ import matplotlib as mpl
 from PIL import Image
 
 # Path to your single combined .nc file
-filepath = "cart_uranus2p-main.nc"
-
+filepath = "cart_uranus2r-main.nc"
+folder = "gifs5"
+if not(os.path.isdir(folder)):
+    os.makedirs(folder)
+case = "2r_11_19"
+timerange = [0,50]
 
 with Dataset(filepath, mode="r") as nc:
     lat = nc.variables["lat"][:]
@@ -27,7 +31,7 @@ with Dataset(filepath, mode="r") as nc:
 
 
 def makeprofgif(data,folder,title,short,x,y,avgaxis,xlabel,ylabel,frames=len(time),trim=1,cmap="RdYlBu"):
-    steparr = np.array([0.0001,0.001,0.01,0.1,0.1,1,10,100])
+    steparr = np.array([0.00001,0.0001,0.001,0.01,0.1,0.1,1,10,100])
     a = np.array([[1],[0.5],[0.25],[0.2]])
     steparr = steparr*a
     secperyear = 3.154e+7
@@ -93,20 +97,17 @@ def makeprofgif(data,folder,title,short,x,y,avgaxis,xlabel,ylabel,frames=len(tim
 
 
 #######
-folder = "gifs4"
-if not(os.path.isdir(folder)):
-    os.makedirs(folder)
+
 
 
 #plot temperature
-data= np.copy(temp[0:147,:,:,:])
-timerange = [0,147]
+data= np.copy(temp[:,:,:,:])
 heightrange=[0,len(x1)]
 latrange = [0,len(lat)]
 lonrange = [0,len(lon)]
 avgaxis= 2 #0 is height, 1 is lat, 2 is lon
 title = "Temperature"
-shorttitle="2ptemp"
+shorttitle="{}temp".format(case)
 setframes = len(data[timerange[0]:timerange[1],0,0,0])
 x = lat
 y = (x1-min(x1))/1e3
@@ -116,14 +117,13 @@ makeprofgif(data[timerange[0]:timerange[1],heightrange[0]:heightrange[1],latrang
 #use seismic colour map for temperature
 
 #plot forcing
-data= np.copy(forc[0:147,:,:,:])
-timerange = [0,147]
+data= np.copy(forc[:,:,:,:])
 heightrange=[0,len(x1)]
 latrange = [0,len(lat)]
 lonrange = [0,len(lon)]
 avgaxis= 2 #0 is height, 1 is lat, 2 is lon
 title = "Forcing"
-shorttitle="2pforc"
+shorttitle="{}forc".format(case)
 setframes = len(data[timerange[0]:timerange[1],0,0,0])
 x = lat
 y = (x1-min(x1))/1e3
@@ -133,14 +133,13 @@ makeprofgif(data[timerange[0]:timerange[1],heightrange[0]:heightrange[1],latrang
 #use seismic colour map for temperature
 
 #plot goal profile
-data= np.copy(goal[0:147,:,:,:])
-timerange = [0,147]
+data= np.copy(goal[:,:,:,:])
 heightrange=[0,len(x1)]
 latrange = [0,len(lat)]
 lonrange = [0,len(lon)]
 avgaxis= 2 #0 is height, 1 is lat, 2 is lon
 title = "Goal Profile"
-shorttitle="2pgoal"
+shorttitle="{}goal".format(case)
 setframes = len(data[timerange[0]:timerange[1],0,0,0])
 x = lat
 y = (x1-min(x1))/1e3
@@ -150,14 +149,44 @@ makeprofgif(data[timerange[0]:timerange[1],heightrange[0]:heightrange[1],latrang
 #use seismic colour map for temperature
 
 #plot zonal winds
-data= np.copy(vel1[0:147,:,:,:])
-timerange = [0,147]
+data= np.copy(vlat[:,:,:,:])
 heightrange=[0,len(x1)]
 latrange = [0,len(lat)]
 lonrange = [0,len(lon)]
 avgaxis= 2 #0 is height, 1 is lat, 2 is lon
 title = "Zonal Wind Profile"
-shorttitle="2pzw"
+shorttitle="{}zw".format(case)
+setframes = len(data[timerange[0]:timerange[1],0,0,0])
+x = lat
+y = (x1-min(x1))/1e3
+xlabel = "Latitude (deg)"
+ylabel = "Height (km)"
+makeprofgif(data[timerange[0]:timerange[1],heightrange[0]:heightrange[1],latrange[0]:latrange[1],lonrange[0]:lonrange[1]],folder,title,shorttitle,x,y,avgaxis,xlabel,ylabel,frames=setframes,trim=0)
+
+#plot vertical winds
+data= np.copy(vel1[:,:,:,:])
+heightrange=[0,len(x1)]
+latrange = [0,len(lat)]
+lonrange = [0,len(lon)]
+avgaxis= 2 #0 is height, 1 is lat, 2 is lon
+title = "Vertical Wind Profile"
+shorttitle="{}vw".format(case)
+setframes = len(data[timerange[0]:timerange[1],0,0,0])
+x = lat
+y = (x1-min(x1))/1e3
+xlabel = "Latitude (deg)"
+ylabel = "Height (km)"
+makeprofgif(data[timerange[0]:timerange[1],heightrange[0]:heightrange[1],latrange[0]:latrange[1],lonrange[0]:lonrange[1]],folder,title,shorttitle,x,y,avgaxis,xlabel,ylabel,frames=setframes,trim=0)
+
+#plot longitudinal winds
+data= np.copy(vlon[:,:,:,:])
+
+heightrange=[0,len(x1)]
+latrange = [0,len(lat)]
+lonrange = [0,len(lon)]
+avgaxis= 2 #0 is height, 1 is lat, 2 is lon
+title = "Meridional Wind Profile"
+shorttitle="{}mw".format(case)
 setframes = len(data[timerange[0]:timerange[1],0,0,0])
 x = lat
 y = (x1-min(x1))/1e3

@@ -28,6 +28,16 @@ else()
   setup_problem(uranus2n)
   setup_problem(uranus2o)
   setup_problem(uranus2p)
+  setup_problem(uranus2q)
+  setup_problem(uranus2r)
+  setup_problem(uranus2r2)
+  # setup_problem(uranus2s)
+  # setup_problem(uranus2t)
+  # setup_problem(uranus2u)
+  # setup_problem(uranus2v)
+  setup_problem(uranus2w)
+  
+
 endif()
 
 # 2. Copy input file to run directory

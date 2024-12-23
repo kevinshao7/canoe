@@ -4,7 +4,7 @@ reference = Straka et al., 1993
 configure = --patch=drum --coord=spherical_polar --prob=hjupiter --flux=lmars --nghost=3 --pnetcdf_path=../pnetcdf -pnetcdf -mpi
 
 <job>
-problem_id = uranus2p   # problem ID: basename of output filenames
+problem_id = uranus2r2   # problem ID: basename of output filenames
 
 <output1>
 file_type  = hst          # History data dump
@@ -13,7 +13,7 @@ dt         = 1E7      # time increment between outputs
 <output2>
 file_type  = pnetcdf      # Binary data dump
 variable   = prim         # variables to be output
-dt         = 1E7     # time increment between outputs
+dt         = 1E7    # time increment between outputs
 
 <output3>
 file_type  = pnetcdf
@@ -23,7 +23,6 @@ dt         = 1E7
 <output4>
 file_type  = rst
 dt         = 1E7
-
 <time>
 cfl_number = 0.9          # The Courant, Friedrichs, & Lewy (CFL) Number
 nlim       = -1           # cycle limit
@@ -32,9 +31,9 @@ xorder     = 5            # horizontal reconstruction order
 integrator = rk3          # integration method
 
 <mesh>
-nx1        = 100          # Number of zones in X1-direction
+nx1        = 50          # Number of zones in X1-direction
 x1min      = 2.525E7         # minimum value of X1
-x1max      = 2.55E7       # maximum value of X1
+x1max      = 2.526E7       # maximum value of X1
 ix1_bc     = reflecting   # inner-X1 boundary flag
 ox1_bc     = reflecting   # outer-X1 boundary flaga
 
@@ -54,7 +53,7 @@ ReferencePressure = 1.E5
 PressureScaleHeight = 2.5E4
 
 <meshblock>
-nx1        = 100
+nx1        = 50
 nx2        = 9
 nx3        = 9
 
@@ -69,15 +68,15 @@ Rd          = 3402.368       # Gas constant (Justh 2021)
 <problem>
 Ts          = 59.            # Surface temperature at equilibrium, K
 Tint        = 80.             #Initial temperature at Surface 
-p0          = 5.E6             # Surface pressure, Pa (by convention)
+p0          = 1.E5             # Surface pressure, Pa (by convention)
 Rp          = 2.525E7            # Polar Planetary Radius, m (de Pater textbook), should be greater than x1min, otherwise division by zero
 eq_heat_flux= 0.    #Equilibrium heat flux (de Pater textbook planetary sciences)
 sday        = 62092. #Sidereal day in seconds (Lamy 2024)
 syear       = 2.5759E9 #Sidereal year in seconds (Yoder 1995)
 emissivity  = 0.90 #Jupiter is 0.27 (Taylor 1965)
-adtdz = 0.003
+adtdz = 0.001
 spinupflux = 0
 initheatdecay = 2.E8
-Kt = -5.E-6
+Kt = -5.E-8 #-1.E7 too high, oscillartes
 sponge_tau = 5.E3 #taken from hot jupiter case, must always be greater than dt!
-spongeheight = 200.E3
+spongeheight = 75.E3

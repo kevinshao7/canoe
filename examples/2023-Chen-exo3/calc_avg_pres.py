@@ -25,7 +25,7 @@ P0 = 1e5
 R = 3779
 g = 8.0
 
-pressure_levels = np.linspace(1e5, 0.01e5, 100)  # Replace with actual pressure levels
+pressure_levels = np.linspace(7e5, 0.01e5, 100)  # Replace with actual pressure levels
 
 # Extract number of time steps in the file
 with Dataset(filepath, "r") as nc:
