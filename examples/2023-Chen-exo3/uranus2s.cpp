@@ -47,28 +47,6 @@ Real current_time,current_dt;
 std::default_random_engine generator;
 std::normal_distribution<double> distribution(0.0, 1.0);                                                                       
 
-// Real Insolation(MeshBlock *pmb,int k,int j,Real time){
-//   auto pexo3 = pmb->pimpl->pexo3;
-//   int is = pmb->is;
-//   Real lat, lon;
-//   Real shifttime = time + (syear/4);
-//   pexo3->GetLatLon(&lat, &lon, k, j, is);
-//   Real latsun = (pi*82.2/180)* cos(2*pi*shifttime /syear); //in radians
-//   Real dayn = std::floor(shifttime/dday);
-//   Real longsun = 2*pi*(shifttime-dayn*dday)/dday; //in radians
-//   Real cosomega = sin(lat)*sin(latsun)+cos(lat)*cos(latsun)*cos(longsun-lon);
-//   if (cosomega>0){
-//     if (time > 5.E9){
-//       return eq_heat_flux*cosomega;
-//     }
-//     else{
-//       Real fluxmax = eq_heat_flux + spinupflux/exp( time /initheatdecay);
-//       return fluxmax*cosomega;
-//     }
-    
-//   }
-//   else return 0;
-// }
 Real power(Real base, int exp){
   if (exp == 0) return 1;
   Real result = base;
@@ -304,7 +282,7 @@ void Mesh::InitUserMeshData(ParameterInput *pin) {
   // forcing parameters                                                                                                           
   // thermodynamic parameters                                                                                                     
   Real gamma = pin->GetReal("hydro", "gamma");
-  grav = pin->GetReal("hydro", "grav_acc1");
+  grav = -pin->GetReal("hydro", "grav_acc1");
   Ts = pin->GetReal("problem", "Ts");
   p0 = pin->GetReal("problem", "p0");
   Rd = pin->GetReal("thermodynamics", "Rd");

@@ -31,19 +31,19 @@ xorder     = 5            # horizontal reconstruction order
 integrator = rk3          # integration method
 
 <mesh>
-nx1        = 100          # Number of zones in X1-direction
-x1min      = 2.4973E7         # minimum value of X1
-x1max      = 2.5173E7       # maximum value of X1
+nx1        = 20          # Number of zones in X1-direction
+x1min      = 2.5559E7         # minimum value of X1 1 bar eq radius de pater planets
+x1max      = 2.5659E7       # maximum value of X1
 ix1_bc     = reflecting   # inner-X1 boundary flag
 ox1_bc     = reflecting   # outer-X1 boundary flaga
 
-nx2        = 24           # Number of zones in X2-direction, should be twice dimension of meshblock
+nx2        = 160           # Number of zones in X2-direction, should be twice dimension of meshblock
 x2min      = 0.     # minimum value of X2
 x2max      = 1.E3      # maximum value of X2
 ix2_bc     = periodic        # inner-X2 boundary flag
 ox2_bc     = periodic        # outer-X2 boundary flag
 
-nx3        = 36          # Number of zones in X3-direction, should be three times dimension of meshblock
+nx3        = 240          # Number of zones in X3-direction, should be three times dimension of meshblock
 x3min      = 0.0          # minimum value of X3
 x3max      = 1.E3      # maximum value of X3
 ix3_bc     = periodic     # inner-X3 boundary flag
@@ -53,12 +53,12 @@ ReferencePressure = 1.E5
 PressureScaleHeight = 2.5E4
 
 <meshblock>
-nx1        = 100
-nx2        = 12 #nx2 =nx3 for square mesh panel
-nx3        = 12
+nx1        = 20
+nx2        = 20 #nx2 =nx3 for square mesh panel, 8*12=96 cores
+nx3        = 20
 
 <hydro>
-grav_acc1   = -9.19        #Polar gravity (de Pater Planetary Sciences textbook) 
+grav_acc1   = -8.96        #Equatorial gravity (de Pater Planetary Sciences textbook) 
 gamma       = 1.456        # gamma = C_p/C_v, (Justh, 2021) heat capacity ratio, NOT adiabatic lapse rate
 implicit_flag = 9
 
@@ -66,12 +66,12 @@ implicit_flag = 9
 Rd          = 3402.368       # Gas constant (Justh 2021)
 
 <problem>
-Tint        = 80.             #Initial temperature at Surface K
-p0          = 8.5E5             # Initial Surface pressure, Pa, temperature profile only specified up to 10 bars, safety margin for initial adjustment transient
+Tint        = 70.             #Initial temperature at Surface K
+p0          = 1.0E5             # Initial Surface pressure, Pa, temperature profile only specified up to 10 bars, safety margin for initial adjustment transient
 Rp          = 2.4973E7            # Polar Planetary Radius, m (de Pater textbook), should be greater than x1min, otherwise division by zero
 sday        = 62092. #Sidereal day in seconds (Lamy 2024)
 syear       = 2.5759E9 #Sidereal year in seconds (Yoder 1995)
 adtdz = 0.001 # initial setup of atmosphere using adiabatic profile, will be relaxted towards observed profile by Orton 2014
 conv_time = 5.E5 # controls newtonian cooling twoards assumed temperature profile by Orton 2014
 sponge_tau = 3.5E3 #taken from hot jupiter case, must always be greater than dt!
-spongeheight = 180.E3 #height above which sponge damping takes place, damping only waves in vertical direction
+spongeheight = 80.E3 #height above which sponge damping takes place, damping only waves in vertical direction
