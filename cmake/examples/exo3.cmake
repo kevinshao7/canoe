@@ -15,5 +15,5 @@ set(NETCDF ON)
 set(MPI ON)
 set(PNETCDF ON)
 set(RSOLVER hllc_transform)
-
-set (NTRACER 3)
+set(NVAPOR 4)
+set_if_empty(NCLOUD 8)
